@@ -8,6 +8,7 @@ This docker compose setup expects you to have the following setup:
 4. You have a user on your Synology with read/write access to a shared folder where you will clone this repository
 5. You have a domain name and can create `CNAME` records that point to your Synology.
 6. You have `git` installed via the SynoCommunity package or via other methods.
+7. You have `pullio` installed
 
 ## setup
 1. `git clone git@github.com:kevingelion/media-cluster.git`

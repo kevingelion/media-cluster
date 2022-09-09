@@ -25,8 +25,12 @@ services:
       VPN_LAN_NETWORK: ${LOCAL_NETWORK}
     volumes:
       - "${CONFIG_DIR}/qbittorrent:/config:rw"
+      - "${CONFIG_DIR}/qbittorrent/iQbit:/app/iQbit:rw"
       - "${STORAGE_DIR}/torrents:/data/torrents:rw"
     labels:
+      - org.hotio.pullio.update=true
+      - org.hotio.pullio.notify=true
+      - org.hotio.pullio.discord.webhook=${PULLIO_DISCORD_WEBHOOK}
       - traefik.enable=true
       - traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8080
       - traefik.http.routers.qbittorrent-rtr.rule=Host(`downloads.${DOMAIN}`)
@@ -49,6 +53,9 @@ services:
       - "${CONFIG_DIR}/radarr:/config:rw"
       - "${STORAGE_DIR}:/data:rw"
     labels:
+      - org.hotio.pullio.update=true
+      - org.hotio.pullio.notify=true
+      - org.hotio.pullio.discord.webhook=${PULLIO_DISCORD_WEBHOOK}
       - traefik.enable=true
       - traefik.http.services.radarr-svc.loadbalancer.server.port=7878
       - traefik.http.routers.radarr-rtr.rule=Host(`movies.${DOMAIN}`)
@@ -57,7 +64,7 @@ services:
       - traefik.http.routers.radarr-rtr.middlewares=ipwhitelist-mddl@docker
   sonarr:
     container_name: sonarr
-    image: "cr.hotio.dev/hotio/sonarr:nightly"
+    image: "cr.hotio.dev/hotio/sonarr:latest"
     restart: unless-stopped
     environment:
       <<: *default-tz-puid-pgid
@@ -66,6 +73,9 @@ services:
       - "${CONFIG_DIR}/sonarr:/config:rw"
       - "${STORAGE_DIR}:/data:rw"
     labels:
+      - org.hotio.pullio.update=true
+      - org.hotio.pullio.notify=true
+      - org.hotio.pullio.discord.webhook=${PULLIO_DISCORD_WEBHOOK}
       - traefik.enable=true
       - traefik.http.services.sonarr-svc.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr-rtr.rule=Host(`tv.${DOMAIN}`)
@@ -82,6 +92,9 @@ services:
       - "/etc/localtime:/etc/localtime:ro"
       - "${CONFIG_DIR}/prowlarr:/config:rw"
     labels:
+      - org.hotio.pullio.update=true
+      - org.hotio.pullio.notify=true
+      - org.hotio.pullio.discord.webhook=${PULLIO_DISCORD_WEBHOOK}
       - traefik.enable=true
       - traefik.http.services.prowlarr-svc.loadbalancer.server.port=9696
       - traefik.http.routers.prowlarr-rtr.rule=Host(`indexers.${DOMAIN}`)
@@ -90,7 +103,7 @@ services:
       - traefik.http.routers.prowlarr-rtr.middlewares=ipwhitelist-mddl@docker
   overseerr:
     container_name: overseerr
-    image: "cr.hotio.dev/hotio/overseerr:nightly"
+    image: "cr.hotio.dev/hotio/overseerr:latest"
     restart: unless-stopped
     environment:
       <<: *default-tz-puid-pgid
@@ -99,11 +112,29 @@ services:
       - "${CONFIG_DIR}/overseerr:/config:rw"
       - "${STORAGE_DIR}/media:/data/media:rw"
     labels:
+      - org.hotio.pullio.update=true
+      - org.hotio.pullio.notify=true
+      - org.hotio.pullio.discord.webhook=${PULLIO_DISCORD_WEBHOOK}
       - traefik.enable=true
       - traefik.http.services.overseerr-svc.loadbalancer.server.port=5055
       - traefik.http.routers.overseerr-rtr.rule=Host(`requests.${DOMAIN}`)
       - traefik.http.routers.overseerr-rtr.entrypoints=websecure
       - traefik.http.routers.overseerr-rtr.tls.certresolver=letsencrypt
+  monitor:
+    container_name: monitor
+    image: amir20/dozzle:latest
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels:
+      - org.hotio.pullio.update=true
+      - org.hotio.pullio.notify=true
+      - org.hotio.pullio.discord.webhook=${PULLIO_DISCORD_WEBHOOK}
+      - traefik.enable=true
+      - traefik.http.services.monitor-svc.loadbalancer.server.port=8080
+      - traefik.http.routers.monitor-rtr.rule=Host(`monitor.${DOMAIN}`)
+      - traefik.http.routers.monitor-rtr.entrypoints=websecure
+      - traefik.http.routers.monitor-rtr.tls.certresolver=letsencrypt
+      - traefik.http.routers.monitor-rtr.middlewares=ipwhitelist-mddl@docker
   traefik:
     image: "traefik:latest"
     container_name: traefik
@@ -129,6 +160,9 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "${CONFIG_DIR}/traefik:/config:rw"
     labels:
+      - "org.hotio.pullio.update=true"
+      - "org.hotio.pullio.notify=true"
+      - "org.hotio.pullio.discord.webhook=${PULLIO_DISCORD_WEBHOOK}"
       - "traefik.enable=true"
       - "traefik.http.middlewares.ipwhitelist-mddl.ipwhitelist.sourcerange=127.0.0.1/32,${LOCAL_NETWORK}"
       - "traefik.http.routers.traefik-rtr.rule=Host(`traffic.${DOMAIN}`)"
